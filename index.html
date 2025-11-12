@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>AVTO PAPA kz — Catalog</title>
+
+<!-- libs for PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg-1:#050607;
+  --bg-2:#081014;
+  --card:#0b1214;
+  --muted:#94a3b8;
+  --accent:#d1a84a; /* gold */
+  --accent-dark:#a87f2b;
+  --glass: rgba(255,255,255,0.03);
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:'Poppins',sans-serif;background:linear-gradient(180deg,var(--bg-1),var(--bg-2));color:#e6eef0;-webkit-font-smoothing:antialiased}
+a { color:inherit; text-decoration:none }
+header.site-header{position:sticky;top:0;z-index:80;padding:12px 16px;display:flex;align-items:center;gap:12px;background:linear-gradient(180deg, rgba(2,4,6,0.6), rgba(2,4,6,0.35));backdrop-filter:blur(6px);border-bottom:1px solid rgba(255,255,255,0.03)}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#fff6e0,var(--accent));display:flex;align-items:center;justify-content:center;color:#081214;font-weight:800;font-size:18px;box-shadow:0 8px 28px rgba(0,0,0,0.6)}
+.brand h1{margin:0;font-size:16px}
+.header-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.search{display:flex;align-items:center;background:var(--glass);border-radius:10px;padding:8px 10px;gap:8px}
+.search input{background:transparent;border:0;color:inherit;outline:none;font-size:14px;width:130px}
+.icon-btn{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px;border-radius:10px;color:var(--muted);cursor:pointer}
+.icon-btn.fav.active{color:var(--accent);border-color:rgba(209,168,74,0.12)}
+
+/* hero */
+.hero{padding:22px 18px 8px;background-image:radial-gradient(600px 120px at 10% 0%, rgba(209,168,74,0.04), transparent), radial-gradient(500px 140px at 90% 30%, rgba(255,255,255,0.02), transparent);border-bottom:1px solid rgba(255,255,255,0.02)}
+.kicker{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(209,168,74,0.06);color:var(--accent);font-weight:700;font-size:13px}
+.hero h2{margin:8px 0 0;font-size:20px}
+.hero p{margin:8px 0 0;color:var(--muted);max-width:760px;font-size:14px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.chip{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 12px;border-radius:999px;font-weight:600;color:var(--muted);cursor:pointer}
+.chip.active{border-color:rgba(209,168,74,0.18);color:var(--accent);background:linear-gradient(90deg, rgba(209,168,74,0.03), transparent)}
+
+/* layout */
+.container{padding:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+@media(min-width:900px){.grid{gap:18px}}
+.card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;overflow:hidden;box-shadow:0 14px 40px rgba(0,0,0,0.6);position:relative;border:1px solid rgba(255,255,255,0.02);transition:transform .24s,box-shadow .24s}
+.card:hover{transform:translateY(-8px)}
+.media{height:160px;background:#071217;display:flex;align-items:center;justify-content:center;position:relative}
+.media img{width:100%;height:100%;object-fit:cover;display:block}
+.badge{position:absolute;left:12px;top:12px;padding:6px 10px;border-radius:10px;background:rgba(0,0,0,0.45);font-weight:700;color:#fff;font-size:13px;border:1px solid rgba(255,255,255,0.04)}
+.like{position:absolute;right:12px;top:12px;width:40px;height:40px;border-radius:10px;border:0;background:rgba(255,255,255,0.03);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px}
+.like.liked{color:var(--accent);background:rgba(209,168,74,0.06);border-color:rgba(209,168,74,0.08)}
+.body{padding:12px 14px}
+.body h3{margin:0;font-size:15px}
+.meta{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.price{font-weight:800;color:var(--accent)}
+.specs{font-size:13px;color:var(--muted);margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
+
+/* modal */
+.modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(2,6,8,0.6), rgba(2,6,8,0.85));z-index:120;padding:18px;opacity:0;pointer-events:none;transition:opacity .18s}
+.modal.show{opacity:1;pointer-events:auto}
+.dialog{width:100%;max-width:960px;background:linear-gradient(180deg,#071718,#071616);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;border:1px solid rgba(255,255,255,0.03);box-shadow:0 24px 80px rgba(0,0,0,0.8)}
+.top{display:flex;gap:12px;padding:12px}
+.preview{flex:1;min-height:320px;background:#071619;display:flex;align-items:center;justify-content:center}
+.preview img{max-width:100%;max-height:100%;object-fit:contain}
+.info{width:360px;padding:12px;display:flex;flex-direction:column}
+.info h2{margin:0}
+.closeBtn{margin-left:auto;background:transparent;border:0;color:var(--muted);cursor:pointer;font-size:18px}
+.actions{display:flex;gap:8px;padding:12px;border-top:1px dashed rgba(255,255,255,0.02);align-items:center}
+
+/* booking small modal (over existing detail modal) */
+.booking-modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(1,2,3,0.6);z-index:200;padding:18px;opacity:0;pointer-events:none;transition:opacity .15s}
+.booking-modal.show{opacity:1;pointer-events:auto}
+.booking-card{width:100%;max-width:420px;background:#071718;border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,0.04)}
+.booking-card h3{margin:0 0 10px 0}
+.booking-card .form-row{margin-bottom:10px}
+.booking-card input{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+.booking-card .help{font-size:12px;color:var(--muted);margin-bottom:8px}
+
+/* bottom nav */
+.nav{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(180deg,#071018,#090f12);display:flex;justify-content:space-around;padding:8px 6px;border-top:1px solid rgba(255,255,255,0.03);z-index:100}
+.nav button{background:none;border:0;color:var(--muted);font-size:14px;cursor:pointer;flex:1;padding:8px}
+.nav button.active{color:var(--accent);font-weight:700}
+
+/* forms and cards */
+.card-inner{background:#0f1618;padding:12px;border-radius:10px}
+.form input, .form select{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;margin-bottom:8px}
+.btn{background:linear-gradient(90deg,var(--accent),var(--accent-dark));color:#071214;border:0;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:800}
+.small-muted{font-size:12px;color:var(--muted)}
+
+/* ticket */
+.ticket{background:linear-gradient(180deg,#fff,#f7fffb);border-radius:12px;padding:12px;color:#071617;max-width:420px;margin:8px auto;border-left:6px solid var(--accent)}
+.qr-sim{width:84px;height:84px;border-radius:8px;background:repeating-linear-gradient(45deg,#e6fff1 0 6px,#fff 6px 12px);display:flex;align-items:center;justify-content:center;font-weight:800;color:#064e3b;font-family:monospace}
+
+/* responsive */
+@media(max-width:640px){
+  .brand h1{font-size:14px}
+  .preview{min-height:220px}
+  .info{width:100%}
+  .top{flex-direction:column}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+}
+  /* ===== MOBILE OPTIMIZATION FIX ===== */
+@media (max-width: 480px) {
+
+  header.site-header {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+
+  .logo {
+    width: 38px;
+    height: 38px;
+    font-size: 14px;
+  }
+
+  .brand h1 {
+    font-size: 12px;
+  }
+
+  .search input {
+    width: 80px;
+    font-size: 12px;
+  }
+
+  .hero {
+    padding: 16px 12px 6px;
+  }
+
+  .hero h2 {
+    font-size: 16px;
+  }
+
+  .hero p {
+    font-size: 12px;
+  }
+
+  /* GRID БАСТЫ ТҮЗЕТУ */
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+    gap: 10px;
+  }
+
+  .card .media {
+    height: 120px;
+  }
+
+  .card h3 {
+    font-size: 13px;
+  }
+
+  .card .price {
+    font-size: 13px;
+  }
+
+  .specs {
+    font-size: 11px;
+  }
+
+  /* MODAL толық мобильный */
+  .dialog {
+    max-width: 100%;
+    height: 96vh;
+  }
+
+  .top {
+    flex-direction: column;
+    padding: 10px;
+  }
+
+  .info {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .preview {
+    min-height: 200px;
+  }
+
+  .actions .btn {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  /* BOOKING small modal */
+  .booking-card {
+    max-width: 90%;
+    padding: 14px;
+  }
+
+  /* bottom nav */
+  .nav button {
+    font-size: 12px;
+    padding: 6px;
+  }
+
+  /* Text sizes overall */
+  body {
+    font-size: 14px;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<header class="site-header" role="banner">
+  <div class="brand">
+    <div class="logo">AP</div>
+    <div>
+      <h1>AVTO PAPA Premium</h1>
+      <div class="small-muted">Премиум каталог автомобилей</div>
+    </div>
+  </div>
+
+  <div class="header-actions" role="navigation">
+    <div class="search" aria-hidden="false">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <input id="searchInput" placeholder="Поиск модели, год..." />
+    </div>
+    <button class="icon-btn" id="openFav" title="Избранное">❤</button>
+    <a id="whatsappHelp" class="help-btn" href="https://wa.me/77750548374?text=%D0%A1%D3%99%D0%BB%D0%B5%D0%BC!%20%D2%9A%D0%B0%D0%B9%D0%BB%D0%B0%D1%83%20AVTO%20PAPA" target="_blank" rel="noopener">(WhatsApp)</a>
+    <button class="icon-btn" id="openMenu" title="Меню">☰</button>
+  </div>
+</header>
+
+<section class="hero" aria-labelledby="heroTitle">
+  <div class="kicker">Премиум</div>
+  <h2 id="heroTitle">CОЗДАЙ СВОЮ МЕЧТУ</h2>
+
+
+  <div class="filters" id="filters">
+    <button class="chip active" data-filter="all">Все</button>
+    <button class="chip" data-filter="ferrari">Ferrari</button>
+    <button class="chip" data-filter="bmw">BMW</button>
+    <button class="chip" data-filter="mercedes">Mercedes</button>
+    <button class="chip" data-filter="electric">Электро</button>
+  </div>
+</section>
+
+<main class="container" id="mainContent">
+  <!-- GRID -->
+  <div class="grid" id="catalogGrid" aria-live="polite"></div>
+
+<!-- modal detail -->
+<div class="modal" id="modal" aria-hidden="true">
+  <div class="dialog" role="dialog" aria-modal="true">
+    <div class="top">
+      <div class="preview" id="previewArea"><img id="previewImg" src="" alt="preview" /></div>
+      <div class="info">
+        <h2 id="modelTitle">—</h2>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+          <div class="price" id="modelPrice" style="font-weight:800;color:var(--accent)"></div>
+          <div class="badge" id="modelYear" style="background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)"></div>
+        </div>
+        <p id="modelDesc" class="small-muted" style="margin-top:10px">—</p>
+        <div id="modelSpecs" style="margin-top:8px;color:var(--muted)"></div>
+        <div style="flex:1"></div>
+        <div class="actions">
+          <button class="btn" id="bookBtn">Записаться</button>
+          <button class="btn" id="openCarModal" style="background:#3b3f44">Подробнее</button>
+          <button class="btn" id="closeModalBtn" style="background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)">Закрыть</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOOKING small modal (asks name + phone) -->
+<div class="booking-modal" id="bookingModal" aria-hidden="true">
+  <div class="booking-card" role="dialog" aria-modal="true">
+    <h3 id="bookingHeader">Записаться</h3>
+    <div class="help">Заполните имя и телефон. Мы отправим данные в Google Sheets.</div>
+    <div class="form-row">
+      <input id="bookName" placeholder="Ваше имя" />
+    </div>
+    <div class="form-row">
+      <input id="bookPhone" placeholder="Телефон (без пробелов)" />
+    </div>
+    <div class="form-row small-muted" id="bookCarLabel"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" id="sendBookingBtn">Отправить</button>
+      <button class="btn" id="cancelBookingBtn" style="background:#333;color:#fff">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ====== CONFIG ====== */
+// Вставил твой Apps Script web app URL (ты дағылар берген)
+const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzG1_6leASLPwI0d-D82CdjxKcB8Q6tWLee6AYO2xfksVAW48hPE9-NFlFLjs4UlcVcHw/exec";
+
+/* ====== MODELS (ТВОИ МАШИНЫ) ======
+   Я поставил placeholder-изображения (via.placeholder) чтобы карточки были не пустые.
+   Если хочешь — өзгерте img на реальные URL'дар. */
+const MODELS = [
+  { id:"c75", brand:"CHANGAN", model:"CS75", year:2025, price:"12 500 000 ₸", img:"https://i.ibb.co.com/HD2BbW5y/1.png?text=CHANGAN+CS75", specs:["1.5 T","0 км","WHITE"], desc:"Жаңа модель, турбо мотор." },
+  { id:"elantra23", brand:"Hyundai", model:"Elantra", year:2023, price:"11 000 000 ₸", img:"https://i.ibb.co.com/HD2BbW5y/1.png?text=Hyundai+Elantra+2023", specs:["1.6","48 000 км","WHITE"], desc:"Өте таза, толық комплект." },
+  { id:"x5_23", brand:"BMW", model:"X5", year:2023, price:"39 000 000 ₸", img:"https://i.ibb.co.com/HD2BbW5y/1.png?text=BMW+X5+2023", specs:["3.0","48 000 км","WHITE"], desc:"Идеальное состояние." },
+  { id:"x5_16", brand:"BMW", model:"X5", year:2016, price:"15 500 000 ₸", img:"https://i.ibb.co.com/HD2BbW5y/1.png?text=BMW+X5+2016", specs:["3.0","120 000 км","BLACK"], desc:"Ухоженный, без вложений." },
+  { id:"velar17", brand:"LAND ROVER", model:"RANGE ROVER VELAR", year:2017, price:"23 500 000 ₸", img:"https://i.ibb.co.com/HD2BbW5y/1.png?text=Range+Rover+Velar+2017", specs:["3.0","120 000 км","BROWN"], desc:"Премиум класс." },
+  { id:"x5plus25", brand:"Changan", model:"X5 Plus", year:2025, price:"9 500 000 ₸", img:"https://i.ibb.co.com/HD2BbW5y/1.png?text=Changan+X5+Plus+2025", specs:["1.5 T","4 000 км","WHITE"], desc:"Жаңа кузов." },
+  { id:"cs55_23", brand:"Changan", model:"CS 55 Plus", year:2023, price:"8 700 000 ₸", img:"https://i.ibb.co.com/HD2BbW5y/1.png?text=Changan+CS55+Plus+2023", specs:["1.5 T","60 000 км","WHITE"], desc:"Отличное состояние." },
+  { id:"juke13", brand:"Nissan", model:"JUKE", year:2013, price:"5 000 000 ₸", img:"https://i.ibb.co.com/HD2BbW5y/1.png?text=Nissan+Juke+2013", specs:["1.6","130 000 км","WHITE"], desc:"Экономичный және стильный." },
+  { id:"santafe22b", brand:"Hyundai", model:"Santa-Fe", year:2022, price:"13 500 000 ₸", img:"https://i.ibb.co.com/HD2BbW5y/1.png?text=Hyundai+Santa-Fe+2022+Black", specs:["2.5","58 000 км","BLACK"], desc:"Состояние отличное." },
+  { id:"dargo24", brand:"HAVAL", model:"DARGO", year:2024, price:"12 800 000 ₸", img:"https://i.ibb.co.com/HD2BbW5y/1.png?text=Haval+Dargo+2024", specs:["2.0","58 000 км","GRAY"], desc:"Надежный кроссовер." },
+  { id:"gs350_12", brand:"LEXUS", model:"GS 350", year:2012, price:"11 500 000 ₸", img:"https://i.ibb.co.com/HD2BbW5y/1.png?text=Lexus+GS+350+2012", specs:["2.5 T","250 000 км","GRAY"], desc:"Бизнес класс." },
+  { id:"camry20", brand:"Toyota", model:"Camry", year:2020, price:"13 500 000 ₸", img:"https://i.ibb.co.com/HD2BbW5y/1.png?text=Toyota+Camry+2020", specs:["2.4","190 000 км","GRAY"], desc:"Надежная классика." },
+  { id:"sienna17", brand:"Toyota", model:"Sienna", year:2017, price:"15 800 000 ₸", img:"https://i.ibb.co.com/HD2BbW5y/1.png?text=Toyota+Sienna+2017", specs:["3.5","186 000 км","WHITE"], desc:"Таза, вместительный." },
+  { id:"santafe22w", brand:"Hyundai", model:"Santa-Fe", year:2022, price:"13 500 000 ₸", img:"https://i.ibb.co.com/HD2BbW5y/1.png?text=Hyundai+Santa-Fe+2022+White", specs:["2.5","88 000 км","WHITE"], desc:"Отличное состояние." },
+  { id:"santafe16", brand:"Hyundai", model:"Santa-Fe", year:2016, price:"10 000 000 ₸", img:"https://i.ibb.co.com/HD2BbW5y/1.png?text=Hyundai+Santa-Fe+2016", specs:["2.4","140 000 км","BROWN"], desc:"Хорошее состояние." },
+  { id:"jetta13", brand:"Volkswagen", model:"Jetta", year:2013, price:"4 900 000 ₸", img:"https://i.ibb.co.com/HD2BbW5y/1.png?text=Volkswagen+Jetta+2013", specs:["2.0","280 000 км","RED"], desc:"Экономичный." },
+  { id:"starex10", brand:"Hyundai", model:"Starex", year:2010, price:"7 300 000 ₸", img:"https://i.ibb.co.com/HD2BbW5y/1.png?text=Hyundai+Starex+2010", specs:["3.0","100 000 км","GRAY"], desc:"Отличный семейный авто." },
+  { id:"passat95", brand:"Volkswagen", model:"Passat", year:1995, price:"2 200 000 ₸", img:"https://i.ibb.co.com/HD2BbW5y/1.png?text=Volkswagen+Passat+1995", specs:["2.0","250 000 км","BLACK"], desc:"Бюджетный вариант." },
+  { id:"vitara08", brand:"Suzuki", model:"Grand Vitara", year:2008, price:"7 000 000 ₸", img:"https://i.ibb.co.com/HD2BbW5y/1.png?text=Suzuki+Grand+Vitara+2008", specs:["2.7","135 000 км","GRAY"], desc:"Надежный полный привод." },
+  { id:"e220_93", brand:"Mercedes", model:"E 220", year:1993, price:"1 850 000 ₸", img:"https://i.ibb.co.com/HD2BbW5y/1.png?text=Mercedes+E+220+1993", specs:["2.2","350 000 км","GRAY"], desc:"Легендарный кузов." },
+  { id:"california09", brand:"Ferrari", model:"California", year:2009, price:"55 000 000 ₸", img:"https://i.ibb.co.com/HD2BbW5y/1.png?text=Ferrari+California+2009", specs:["4.3","33 000 км","RED"], desc:"Премиум суперкар." },
+  { id:"gs300_07", brand:"LEXUS", model:"GS 300", year:2007, price:"6 700 000 ₸", img:"https://i.ibb.co.com/HD2BbW5y/1.png?text=Lexus+GS+300+2007", specs:["3.0","375 000 км","GRAY"], desc:"Комфорт + надежность." }
+];
+
+/* ====== UTILITIES ====== */
+function $(s){return document.querySelector(s)}
+function $all(s){return Array.from(document.querySelectorAll(s))}
+function getFavorites(){ try{ return JSON.parse(localStorage.getItem('avto_favorites')||'[]') }catch(e){return []} }
+function saveFavorites(arr){ localStorage.setItem('avto_favorites', JSON.stringify(arr)) }
+function loadBookings(){ try{ return JSON.parse(localStorage.getItem('avto_service_bookings')||'[]') }catch(e){return []} }
+function saveBookings(a){ localStorage.setItem('avto_service_bookings', JSON.stringify(a)) }
+
+/* ====== RENDER CATALOG ====== */
+const grid = $('#catalogGrid');
+const filters = $('#filters');
+const searchInput = $('#searchInput');
+
+function makeCard(m){
+  const el = document.createElement('article'); el.className='card';
+  el.dataset.id = m.id;
+  el.dataset.brand = (m.brand||'').toLowerCase();
+  el.innerHTML = `
+    <div class="media">
+      <img loading="lazy" src="${m.img||'https://via.placeholder.com/800x400?text=No+Image'}" alt="${m.brand} ${m.model}">
+      <div class="badge">${m.brand}</div>
+      <button class="like" title="Добавить в избранное">♡</button>
+    </div>
+    <div class="body">
+      <h3>${m.brand} ${m.model}</h3>
+      <div class="meta">
+        <div class="spec">${m.specs[0]||''}</div>
+        <div class="price">${m.price}</div>
+      </div>
+      <div class="specs">${(m.specs||[]).slice(0,3).map(s=>`<span>${s}</span>`).join('')}</div>
+    </div>`;
+  el.addEventListener('click', (ev)=>{
+    if(ev.target.closest('.like')){
+      ev.stopPropagation();
+      toggleFav(m.id, ev.target);
+      return;
+    }
+    openModal(m);
+  });
+  const likeBtn = el.querySelector('.like');
+  if(getFavorites().includes(m.id)){ likeBtn.classList.add('liked'); likeBtn.textContent='♥' } else likeBtn.textContent='♡';
+  return el;
+}
+
+function renderList(list){
+  grid.innerHTML='';
+  if(!list.length){ grid.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted)">Ничего не найдено</div>'; return; }
+  const frag = document.createDocumentFragment();
+  list.forEach(m => frag.appendChild(makeCard(m)));
+  grid.appendChild(frag);
+}
+renderList(MODELS);
+
+/* ====== FILTERS & SEARCH ====== */
+filters.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.chip'); if(!btn) return;
+  filters.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active'); applyFilters();
+});
+searchInput.addEventListener('input', applyFilters);
+
+function applyFilters(){
+  const active = filters.querySelector('.chip.active')?.dataset.filter || 'all';
+  const q = (searchInput.value||'').trim().toLowerCase();
+  const list = MODELS.filter(m=>{
+    if(active !== 'all'){
+      if(active === 'electric'){ if(!m.model.toLowerCase().includes('model') && !m.brand.toLowerCase().includes('tesla')) return false; }
+      else if(!m.brand.toLowerCase().includes(active)) return false;
+    }
+    if(q){
+      if(!(m.brand.toLowerCase().includes(q) || m.model.toLowerCase().includes(q) || String(m.year).includes(q))) return false;
+    }
+    return true;
+  });
+  renderList(list);
+}
+
+/* ====== FAVORITES ====== */
+function toggleFav(id, btnEl=null){
+  let fav = getFavorites();
+  if(fav.includes(id)) fav = fav.filter(x=>x!==id); else fav.push(id);
+  saveFavorites(fav);
+  if(btnEl){
+    btnEl.classList.toggle('liked');
+    btnEl.textContent = btnEl.classList.contains('liked') ? '♥' : '♡';
+  }
+}
+$('#openFav').addEventListener('click', ()=>{
+  const favs = getFavorites();
+  if(!favs.length){ alert('Список избранного пуст'); return; }
+  const list = MODELS.filter(m=>favs.includes(m.id));
+  renderList(list);
+});
+
+/* ====== MODAL DETAIL ====== */
+const modal = $('#modal');
+const previewImg = $('#previewImg');
+const modelTitle = $('#modelTitle');
+const modelPrice = $('#modelPrice');
+const modelYear = $('#modelYear');
+const modelDesc = $('#modelDesc');
+const modelSpecs = $('#modelSpecs');
+let currentModel = null;
+
+function openModal(m){
+  currentModel = m;
+  previewImg.src = m.img || 'https://i.ibb.co.com/HD2BbW5y/1.png?text=No+Image';
+  modelTitle.textContent = `${m.brand} ${m.model}`;
+  modelPrice.textContent = m.price;
+  modelYear.textContent = m.year;
+  modelDesc.textContent = m.desc || '—';
+  modelSpecs.innerHTML = (m.specs||[]).map(s=>`<div style="color:var(--muted);margin-bottom:6px">${s}</div>`).join('');
+  modal.classList.add('show');
+}
+function closeModal(){ modal.classList.remove('show') }
+$('#closeModalBtn').addEventListener('click', closeModal);
+modal.addEventListener('click', (e)=>{ if(e.target===modal) closeModal(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
+
+/* ====== NEW: booking modal flow ====== */
+const bookingModal = $('#bookingModal');
+const bookName = $('#bookName');
+const bookPhone = $('#bookPhone');
+const bookCarLabel = $('#bookCarLabel');
+const bookingHeader = $('#bookingHeader');
+
+function openBookingModal(forModel){
+  // fill car label and clear fields
+  const carName = `${forModel.brand} ${forModel.model}`;
+  bookingHeader.textContent = 'Записаться — ' + carName;
+  bookCarLabel.textContent = 'Вы записываетесь на: ' + carName;
+  bookName.value = '';
+  bookPhone.value = '';
+  bookingModal.classList.add('show');
+  // focus name
+  setTimeout(()=>bookName.focus(),100);
+}
+function closeBookingModal(){ bookingModal.classList.remove('show'); }
+
+/* replace old bookBtn behavior: open booking modal (but keep original service view flow unchanged elsewhere) */
+$('#bookBtn').addEventListener('click', ()=>{
+  if(!currentModel){ alert('Модель не выбрана'); return; }
+  // open our small booking modal
+  openBookingModal(currentModel);
+});
+
+/* cancel send */
+$('#cancelBookingBtn').addEventListener('click', ()=>{
+  closeBookingModal();
+});
+
+/* send booking to Apps Script */
+$('#sendBookingBtn').addEventListener('click', async ()=>{
+  const name = (bookName.value||'').trim();
+  const phone = (bookPhone.value||'').trim();
+  if(!name){ alert('Введите имя'); bookName.focus(); return; }
+  if(!phone){ alert('Введите телефон'); bookPhone.focus(); return; }
+  if(!currentModel){ alert('Ошибка: модель не выбрана'); return; }
+
+  const carFull = `${currentModel.brand} ${currentModel.model}`;
+  const payload = {
+    type: 'booking_from_site',
+    name: name,
+    phone: phone,
+    car: carFull,
+    timestamp: (new Date()).toISOString()
+  };
+
+  try{
+    // POST to Apps Script
+    await fetch(APPS_SCRIPT_WEB_APP_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    // Optionally — также сохраняем локально в список броней (не трогаем остальной UI)
+    const arr = loadBookings();
+    const bookingLocal = {
+      id: 'BK' + Date.now().toString().slice(-6),
+      carId: currentModel.id,
+      carShort: carFull,
+      date: '', time: '',
+      duration: 0,
+      clientPhone: phone,
+      clientName: name
+    };
+    arr.push(bookingLocal); saveBookings(arr);
+    // UX feedback
+    closeBookingModal();
+    closeModal();
+    alert('Данные отправлены. Спасибо! Мы свяжемся с вами.');
+  }catch(err){
+    console.error('Send booking error', err);
+    alert('Ошибка отправки. Попробуйте ещё раз.');
+  }
+});
+
+/* ====== NAVIGATION / VIEWS (catalog, favorites, service, profile) ====== */
+function showView(view){
+  $all('.nav button').forEach(b=>b.classList.remove('active'));
+  $all('.nav button').forEach(b=>{ if(b.dataset.view===view) b.classList.add('active')});
+  if(view === 'catalog'){
+    $('#catalogGrid').classList.remove('hidden');
+    $('#favoritesView').classList.add('hidden');
+    $('#profileView').classList.add('hidden');
+    $('#serviceView').classList.add('hidden');
+    applyFilters();
+    window.scrollTo({top:0,behavior:'smooth'});
+  } else if(view === 'favorites'){
+    $('#catalogGrid').classList.add('hidden');
+    $('#favoritesView').classList.remove('hidden');
+    $('#profileView').classList.add('hidden');
+    $('#serviceView').classList.add('hidden');
+    renderFavoritesGrid();
+    window.scrollTo({top:0,behavior:'smooth'});
+  } else if(view === 'service'){
+    $('#catalogGrid').classList.add('hidden');
+    $('#favoritesView').classList.add('hidden');
+    $('#profileView').classList.add('hidden');
+    $('#serviceView').classList.remove('hidden');
+    initServiceModule();
+    window.scrollTo({top:0,behavior:'smooth'});
+  } else if(view === 'profile'){
+    $('#catalogGrid').classList.add('hidden');
+    $('#favoritesView').classList.add('hidden');
+    $('#profileView').classList.remove('hidden');
+    $('#serviceView').classList.add('hidden');
+    window.scrollTo({top:0,behavior:'smooth'});
+    loadProfileToForm();
+  }
+}
+$all('.nav button').forEach(b=>b.addEventListener('click', ()=> showView(b.dataset.view)));
+showView('catalog');
+
+/* ====== FAVORITES GRID RENDER ====== */
+function renderFavoritesGrid(){
+  const favs = getFavorites();
+  const favGrid = $('#favoritesGrid'); favGrid.innerHTML='';
+  if(!favs.length){ favGrid.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted)">Пусто 💭</div>'; return; }
+  favs.forEach(id=>{
+    const m = MODELS.find(x=>x.id===id);
+    if(!m) return;
+    const c = makeCard(m);
+    favGrid.appendChild(c);
+  });
+}
+
+/* ====== PROFILE save/load ====== */
+$('#btnRegister')?.addEventListener('click', ()=>{
+  const name = $('#inputName').value.trim();
+  const phone = $('#inputPhone').value.trim();
+  const login = $('#inputLogin').value.trim();
+  const pass = $('#inputPassword').value.trim();
+  if(!name || !phone || !login || !pass){ alert('Заполните все поля'); return; }
+  const payload = { name, phone, login };
+  localStorage.setItem('avto_user', JSON.stringify(payload));
+  alert('Профиль сохранен');
+  loadProfileToForm();
+});
+function loadProfileToForm(){
+  const user = JSON.parse(localStorage.getItem('avto_user') || 'null');
+  if(user){
+    $('#inputName').value = user.name || '';
+    $('#inputPhone').value = user.phone || '';
+    $('#inputLogin').value = user.login || '';
+  }
+}
+
+/* ====== SERVICE / BOOKINGS ====== */
+/* (оставил всё как было — чтобы ничего не ломать) */
+function generateTimeSlots(start='09:00', end='17:30', step=30){
+  const slots=[]; const [sh,sm]=start.split(':').map(Number); const [eh,em]=end.split(':').map(Number);
+  const cur = new Date(); cur.setHours(sh,sm,0,0);
+  const endd = new Date(); endd.setHours(eh,em,0,0);
+  while(cur <= endd){
+    slots.push(String(cur.getHours()).padStart(2,'0') + ':' + String(cur.getMinutes()).padStart(2,'0'));
+    cur.setTime(cur.getTime() + step*60000);
+  }
+  return slots;
+}
+let selectedSlot = null;
+let durationMinutes = 30;
+const MIN_DURATION = 30, MAX_DURATION = 240;
+
+function populateCarSelect(){
+  const sel = $('#selectCarForService'); if(!sel) return;
+  sel.innerHTML='';
+  MODELS.forEach(c=>{ const o = document.createElement('option'); o.value = c.id; o.textContent = `${c.brand} ${c.model} — ${c.year}`; sel.appendChild(o); });
+}
+function renderSlotsFor(dateStr, carId){
+  const container = $('#slotsContainer'); if(!container) return;
+  container.innerHTML='';
+  if(!dateStr || !carId) return;
+  const slots = generateTimeSlots('09:00','17:30',30);
+  const bookings = loadBookings().filter(b=>b.date===dateStr && b.carId===carId);
+  const bookedTimes = bookings.map(b=>({start:b.time,dur:Number(b.duration)}));
+  slots.forEach(time=>{
+    const el = document.createElement('div'); el.className='slot'; el.textContent = time; el.style.padding='8px'; el.style.borderRadius='8px'; el.style.background='#071216'; el.style.marginBottom='6px'; el.style.cursor='pointer';
+    let isBooked=false;
+    bookedTimes.forEach(bt=>{
+      const s = new Date(`${dateStr}T${bt.start}:00`); const e = new Date(s.getTime() + bt.dur*60000);
+      const slotDate = new Date(`${dateStr}T${time}:00`); const endThis = new Date(slotDate.getTime() + durationMinutes*60000);
+      if(slotDate < e && endThis > s) isBooked=true;
+    });
+    if(isBooked){ el.style.opacity='0.45'; el.style.textDecoration='line-through'; el.style.cursor='not-allowed' }
+    el.addEventListener('click', ()=>{
+      if(isBooked) return;
+      $all('#slotsContainer .slot').forEach(s=>s.style.outline='none');
+      el.style.outline='2px solid rgba(209,168,74,0.6)';
+      selectedSlot = time; $('#selectedSlotText')?.textContent && ($('#selectedSlotText').textContent = `${dateStr} ${time}`);
+    });
+    container.appendChild(el);
+  });
+}
+
+$('#incDuration')?.addEventListener('click', ()=>{ durationMinutes = Math.min(MAX_DURATION, durationMinutes+30); updateDurationUI(); });
+$('#decDuration')?.addEventListener('click', ()=>{ durationMinutes = Math.max(MIN_DURATION, durationMinutes-30); updateDurationUI(); });
+function updateDurationUI(){ $('#durationDisplay') && ($('#durationDisplay').textContent = `${durationMinutes} мин`); renderSlotsFor($('#serviceDate')?.value, $('#selectCarForService')?.value); }
+
+$('#confirmBookingBtn')?.addEventListener('click', async ()=>{
+  const date = $('#serviceDate').value; const carId = $('#selectCarForService').value;
+  if(!date){ alert('Выберите дату'); return; }
+  if(!selectedSlot){ alert('Выберите слот'); return; }
+  const arr = loadBookings();
+  const overlap = arr.some(b=>{
+    if(b.date !== date || b.carId !== carId) return false;
+    const s1 = new Date(`${date}T${b.time}:00`); const e1 = new Date(s1.getTime() + b.duration*60000);
+    const s2 = new Date(`${date}T${selectedSlot}:00`); const e2 = new Date(s2.getTime() + durationMinutes*60000);
+    return s2 < e1 && e2 > s1;
+  });
+  if(overlap){ alert('Слот занят'); renderSlotsFor(date,carId); return; }
+  const user = JSON.parse(localStorage.getItem('avto_user') || '{}');
+  const booking = {
+    id: 'BK' + Date.now().toString().slice(-6),
+    carId,
+    carShort: (MODELS.find(c=>c.id===carId)?.brand + ' ' + MODELS.find(c=>c.id===carId)?.model) || carId,
+    date,
+    time:selectedSlot,
+    duration:durationMinutes,
+    clientPhone: user.phone || '',
+    clientName: user.name || ''
+  };
+  arr.push(booking); saveBookings(arr);
+  try{
+    // try send to Apps Script
+    await fetch(APPS_SCRIPT_WEB_APP_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({type:'booking', ...booking}) });
+  }catch(e){ console.warn('Send booking error', e) }
+  renderBookingsList();
+  showTicket(booking);
+  alert('✅ Бронь подтверждена: ' + bookingLabel(booking));
+  selectedSlot = null; updateDurationUI();
+});
+
+function renderBookingsList(){
+  const container = $('#bookingsList'); if(!container) return;
+  container.innerHTML='';
+  const arr = loadBookings().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  if(!arr.length){ container.innerHTML='<div class="small-muted">Броней пока нет.</div>'; return; }
+  arr.forEach((b,idx)=>{
+    const item = document.createElement('div'); item.className='b-item'; item.style.display='flex'; item.style.justifyContent='space-between'; item.style.alignItems='center'; item.style.padding='8px'; item.style.marginBottom='8px'; item.style.background='#071216'; item.style.borderRadius='8px';
+    item.innerHTML = `<div><div style="font-weight:700">${b.carShort||b.carId}</div><div class="small-muted">${b.date} • ${b.time} • ${b.duration} мин</div><div class="small-muted">Тел: ${b.clientPhone||'—'}</div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+      <button class="btn" data-edit="${idx}" style="padding:6px 8px;font-size:13px;background:#2b3135">Редактировать</button>
+      <button style="background:#fee2e2;color:#991b1b;border:0;padding:6px 8px;border-radius:8px;font-size:13px" data-del="${idx}">Удалить</button>
+    </div>`;
+    container.appendChild(item);
+  });
+}
+document.addEventListener('click', e=>{
+  if(e.target.matches('[data-del]')){
+    const idx = Number(e.target.getAttribute('data-del')); const arr = loadBookings();
+    if(idx>=0 && idx < arr.length && confirm('Удалить бронь?')){ arr.splice(idx,1); saveBookings(arr); renderBookingsList(); renderSlotsFor($('#serviceDate')?.value, $('#selectCarForService')?.value); }
+  }
+  if(e.target.matches('[data-edit]')){
+    const idx = Number(e.target.getAttribute('data-edit')); const arr = loadBookings();
+    if(idx>=0 && idx < arr.length){
+      const b = arr[idx];
+      $('#serviceDate').value = b.date; $('#selectCarForService').value = b.carId; durationMinutes = Number(b.duration); selectedSlot = b.time;
+      updateDurationUI(); renderSlotsFor(b.date,b.carId);
+      arr.splice(idx,1); saveBookings(arr); renderBookingsList();
+      alert('Данные загружены в форму. Нажмите Подтвердить бронь чтобы сохранить изменения.');
+    }
+  }
+});
+
+function bookingLabel(b){ return `${b.date} ${b.time} — ${b.duration} мин (${b.carShort||b.carId})` }
+
+/* ticket logic */
+function showTicket(booking){
+  if($('#ticketTitle')) $('#ticketTitle').textContent = 'Талон на сервис';
+  if($('#ticketCode')) $('#ticketCode').textContent = booking.id;
+  if($('#ticketQR')) $('#ticketQR').textContent = booking.id.slice(-4);
+  $('#ticketPreview') && $('#ticketPreview').classList.remove('hidden');
+}
+$('#closeTicketBtn')?.addEventListener('click', ()=> $('#ticketPreview') && $('#ticketPreview').classList.add('hidden'));
+
+/* download pdf */
+$('#downloadPdfBtn')?.addEventListener('click', async ()=>{
+  const { jsPDF } = window.jspdf;
+  const ticket = document.getElementById("ticketCard");
+  if(!ticket) return alert('Талон не найден!');
+  const canvas = await html2canvas(ticket, { scale:3, backgroundColor:'#ffffff' });
+  const imgData = canvas.toDataURL('image/png');
+  const pdf = new jsPDF({ orientation:'portrait', unit:'px', format:[ticket.offsetWidth+40, ticket.offsetHeight+40] });
+  pdf.addImage(imgData, 'PNG', 20,20, ticket.offsetWidth, ticket.offsetHeight);
+  pdf.save('talon_avtopapa.pdf');
+});
+
+/* init service module */
+function initServiceModule(){
+  populateCarSelect(); renderBookingsList();
+  const dateInput = $('#serviceDate'); if(!dateInput) return;
+  dateInput.value = dateInput.value || getTodayISO(); dateInput.min = getTodayISO();
+  renderSlotsFor(dateInput.value, $('#selectCarForService').value);
+  $('#selectCarForService').onchange = ()=>{ selectedSlot=null; renderSlotsFor(dateInput.value, $('#selectCarForService').value) };
+  dateInput.onchange = ()=>{ selectedSlot=null; renderSlotsFor(dateInput.value, $('#selectCarForService').value) };
+  updateDurationUI();
+}
+
+/* helpers */
+function getTodayISO(){ const d=new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+
+/* load profile to form on start */
+(function init(){
+  populateCarSelect();
+  const user = JSON.parse(localStorage.getItem('avto_user') || 'null');
+  if(user){ loadProfileToForm(); }
+})();
+
+/* small: render favorites when favorites tab clicked in nav */
+$all('.nav button').forEach(b=>{
+  b.addEventListener('click', ()=>{ if(b.dataset.view==='favorites') renderFavoritesGrid(); });
+});
+  
+</script>
+</body>
+</html>
